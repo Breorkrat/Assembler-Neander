@@ -1,23 +1,21 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#define mem 256
+#define mem 512
 
-// djb2 hash
 int hash(unsigned char *str)
 {
-  int hash = str[0] * 17 + str[1] * 4 + str[2] * 1849;
-  return hash % 10000;
+  int hash = (str[0] * 3 + str[1] + str[2]) % 100;
+  return hash;
 }
 
-// Retorna o operando em binário
-char* address(char* str){
-  int start = 0;
-  for (start = 0; str[start] != ' '; start++);
-  start ++;
-  str[start+3] = '\0';
-  return (char *)(str + start);
+// Skip indica onde o endereço começa, 3 para funções como JZ e 4 para STA...
+unsigned char address(char *str, char skip)
+{
+  unsigned char valor;
 
+  sscanf(str + skip, "%hhx", &valor);
+  return valor;
 }
 
 int main()
@@ -26,88 +24,104 @@ int main()
 
   FILE *fptr, *saida;
   fptr = fopen("src.txt", "r");
-  saida = fopen("out.txt", "w");
+  saida = fopen("out.mem", "w");
 
   char raw[256] = {};
-  char final[256] = {};
-  int bytes = 0;
-  while (fgets(raw, 256, fptr))
+
+  // Primeiros bytes de um arquivo de memória criado pelo próprio neander, acredito que sejam
+  // Headers com informações sobre como mostrar as informações.
+  unsigned char final[mem] = {0x03, 0x4E, 0x44, 0x52};
+  int bytes = 4;
+  while (fgets(raw, mem, fptr))
   {
-    for (int i = 0; i < 7; i++)
+    if (raw[0] > 'A' && raw[0] < 'Z')
     {
-      // Intervalo para letras maiúsculas em ASCII
-      if (raw[i] > 40 && raw[i] < 91)
+      char key[] = {raw[0], raw[1], raw[2]};
+
+      switch (hash(key))
       {
-        char key[] = {raw[i], raw[i+1], raw[i+2]};
-        bytes++;
-        switch(hash(key))
-        {
-        case 9562: // NOP
-          fprintf(saida, "0, ");
-          break;
+      case 93: // NOP
+        final[bytes] = 0x00;
+        bytes+=2;
+        break;
 
-        case 1932: // STA
-          fprintf(saida, "16, %s, ", address(raw));
-          bytes++;
-          break;
+      case 98: // STA
+        final[bytes] = 0x10;
+        final[bytes + 2] = address(raw, 4);
+        bytes += 4;
+        break;
 
-        case 1749: // LDA
-          fprintf(saida, "32, %s, ", address(raw));
-          bytes++;
-          break;
+      case 61: // LDA
+        final[bytes] = 0x20;
+        final[bytes + 2] = address(raw, 4);
+        bytes += 4;
+        break;
 
-        case 7109: // ADD
-          fprintf(saida, "48, %s, ", address(raw));
-          bytes++;         
-          break;
+      case 31: // ADD
+        final[bytes] = 0x30;
+        final[bytes + 2] = address(raw, 4);
+        bytes += 4;
+        break;
 
-        case 839: // OR
-          fprintf(saida, "64, %s, ", address(raw));
-          bytes++;
-          break;
+      case 51: // OR
+        final[bytes] = 0x40;
+        final[bytes + 2] = address(raw, 3);
+        bytes += 4;
+        break;
 
-        case 7149: // AND
-          fprintf(saida, "80, %s, ", address(raw));
-          bytes++;
-          break;
+      case 41: // AND
+        final[bytes] = 0x50;
+        final[bytes + 2] = address(raw, 4);
+        bytes += 4;
+        break;
 
-        case 6958: // NOT
-          fprintf(saida, "96, ");
-          break;
+      case 97: // NOT
+        final[bytes] = 0x60;
+        bytes+=2;
+        break;
 
-        case 9486: // JMP
-          fprintf(saida, "128, %s, ", address(raw));
-          bytes++;
-          break;
+      case 79: // JMP
+        final[bytes] = 0x80;
+        final[bytes + 2] = address(raw, 4);
+        bytes += 4;
+        break;
 
-        case 738: // JN
-          fprintf(saida, "144, %s, ", address(raw));
-          bytes++;
-          break;
+      case 32: // JN
+        final[bytes] = 0x90;
+        final[bytes + 2] = address(raw, 3);
+        bytes += 4;
+        break;
 
-        case 786: // JZ
-          fprintf(saida, "160, %s, ", address(raw));
-          bytes++;
-          break;
+      case 44: // JZ
+        final[bytes] = 0xA0;
+        final[bytes + 2] = address(raw, 3);
+        bytes += 4;
+        break;
 
-        case 6844: // HLT
-          fprintf(saida, "240, ");
-          break;
-        }
+      case 76: // HLT
+        final[bytes] = 0xF0;
+        bytes+=2;
+        break;
       }
+    }
+
+    if (raw[0] == '*') {
+      final[address(raw, 1)*2+4] = address(raw, 3);
     }
   }
 
-  do {
-    fprintf(saida, "0, ");
-    bytes++;
-    printf("%d\n", bytes);
-  } while (bytes < 256);
+  for (int i = 0; i < mem; i++)
+  {
+    printf("%#04X  ", final[i]);
+  }
+  printf("\n");
+
+  fwrite(final, 1, mem, saida);
 
 
-  printf("%s", final);
   fclose(fptr);
   fclose(saida);
 
   return 0;
 }
+
