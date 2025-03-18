@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
+
 #define mem 512
 
 int hash(unsigned char *str)
@@ -13,31 +13,49 @@ int hash(unsigned char *str)
 unsigned char address(char *str, char skip)
 {
   unsigned char valor;
-
   sscanf(str + skip, "%hhx", &valor);
   return valor;
+}
+
+unsigned char temDesvio(unsigned char desvio[mem], char linha){
+  for (int i = 0; i < mem; i++) {
+    if (desvio[i] == linha) {
+      printf("Desvio para linha %d encontrado na linha %d, endereço %X\n", desvio[i], linha, i);
+      return i;
+    }
+  }
+  return 0;
 }
 
 int main()
 {
   // https://www.inf.ufrgs.br/~johann/neander2024/
 
-  FILE *fptr, *saida;
-  fptr = fopen("src.txt", "r");
+  FILE *entrada, *saida;
+  entrada = fopen("src.txt", "r");
   saida = fopen("out.mem", "w");
 
-  char raw[256] = {};
-
-  // Primeiros bytes de um arquivo de memória criado pelo próprio neander, acredito que sejam
-  // Headers com informações sobre como mostrar as informações.
+  char raw[mem] = {};
   unsigned char final[mem] = {0x03, 0x4E, 0x44, 0x52};
-  int bytes = 4;
-  while (fgets(raw, mem, fptr))
-  {
-    if (raw[0] > 'A' && raw[0] < 'Z')
-    {
-      char key[] = {raw[0], raw[1], raw[2]};
+  unsigned char desvio[mem] = {0};
 
+
+  int bytes = 4;
+  for (char linha = 1; fgets(raw, mem, entrada); linha ++)
+  {
+    //printf("Escrevendo no byte %X\n", bytes);
+    unsigned char posDesvio = temDesvio(desvio, linha);
+    if(posDesvio != 0) {
+      final[posDesvio] = bytes;
+      //printf("Final[%X] vai para %X\n", posDesvio, bytes);
+      //printf("Desvio: %X, Destino: %X", posDesvio, posDesvio-bytes);
+
+    }
+    // Intervalo para letras maiúsculas em ASCII
+    if (raw[0] >= 'A' && raw[0] <= 'Z')
+    {
+      
+      char key[] = {raw[0], raw[1], raw[2]};
       switch (hash(key))
       {
       case 93: // NOP
@@ -82,19 +100,33 @@ int main()
 
       case 79: // JMP
         final[bytes] = 0x80;
-        final[bytes + 2] = address(raw, 4);
+
+        desvio[bytes] = 0x80;
+        desvio[bytes+2] = address(raw, 4);
+        //printf("JMP para %X\n", desvio[bytes+3]);
+
         bytes += 4;
         break;
 
       case 32: // JN
         final[bytes] = 0x90;
         final[bytes + 2] = address(raw, 3);
+
+        //desvio[bytes+2][0] = bytes+2;
+        //desvio[bytes + 2][1] = address(raw, 4);
+        //printf("PosDesvio: %X, para %X\n", bytes+2, desvio[bytes+2][1]);
+
         bytes += 4;
         break;
 
       case 44: // JZ
         final[bytes] = 0xA0;
         final[bytes + 2] = address(raw, 3);
+
+        //desvio[bytes+2][0] = bytes+2;
+        //desvio[bytes + 2][1] = address(raw, 4);
+        //printf("PosDesvio: %X, para %X\n", bytes+2, desvio[bytes+2][1]);
+
         bytes += 4;
         break;
 
@@ -110,16 +142,11 @@ int main()
     }
   }
 
-  for (int i = 0; i < mem; i++)
-  {
-    printf("%#04X  ", final[i]);
-  }
-  printf("\n");
 
   fwrite(final, 1, mem, saida);
 
 
-  fclose(fptr);
+  fclose(entrada);
   fclose(saida);
 
   return 0;
