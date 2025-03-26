@@ -9,7 +9,7 @@ int hash(char *str)
   return hash;
 }
 
-char address(char *str, int start){
+unsigned char address(char *str, int start){
     int value = atoi(str+start);
     return (char)value;
 }
@@ -33,8 +33,8 @@ int main()
 
   char headers[] = {0x03, 0x4E, 0x44, 0x52};
   char raw[MAX_MEM];
-  char mem[MAX_MEM] = {0};
-  char desvio[2][MAX_MEM] = {0};
+  unsigned char mem[MAX_MEM] = {0};
+  unsigned char desvio[2][MAX_MEM] = {0};
   int quantDesvio = 0;
   int bytes = 0;
 
@@ -42,10 +42,7 @@ int main()
   {
     int temDesvio = checarDesvio(desvio[0], linha, quantDesvio);
     if (temDesvio != -1){
-	printf("Linha: %d | Desvio para %d\n", linha, desvio[1][temDesvio]);
-	printf("Valor em %d: %d\n", desvio[1][temDesvio], mem[desvio[1][temDesvio]]);
 	mem[desvio[1][temDesvio]] = (char) bytes/2; 
-	printf("Valor int: %d\nValor hex: %x\n", bytes, bytes);
     }
 
     if (raw[0] >= 'A' && raw[0] <= 'Z')
@@ -119,7 +116,7 @@ int main()
     }
 
     if (raw[0] == '*') {
-      mem[address(raw, 1)*2+4] = address(raw, 3);
+      mem[address(raw, 1)*2] = address(raw, 4);
     }
   }
 
@@ -130,8 +127,6 @@ int main()
   fclose(entrada);
   fclose(saida);
 
-  for (int i = 0; i < MAX_MEM; i++){
-  }
   return 0;
 }
 
