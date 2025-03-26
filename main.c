@@ -43,7 +43,9 @@ int main()
     int temDesvio = checarDesvio(desvio[0], linha, quantDesvio);
     if (temDesvio != -1){
 	printf("Linha: %d | Desvio para %d\n", linha, desvio[1][temDesvio]);
-	mem[desvio[1][temDesvio]] = bytes;
+	printf("Valor em %d: %d\n", desvio[1][temDesvio], mem[desvio[1][temDesvio]]);
+	mem[desvio[1][temDesvio]] = (char) bytes/2; 
+	printf("Valor int: %d\nValor hex: %x\n", bytes, bytes);
     }
 
     if (raw[0] >= 'A' && raw[0] <= 'Z')
@@ -125,10 +127,11 @@ int main()
   fwrite(headers, 1, sizeof(headers), saida);
   fwrite(mem, 1, MAX_MEM, saida);
 
-
   fclose(entrada);
   fclose(saida);
 
+  for (int i = 0; i < MAX_MEM; i++){
+  }
   return 0;
 }
 
