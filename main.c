@@ -119,13 +119,7 @@ int main()
 		    break;
 
 		case JMP: 
-		    bytes += 2;
-		    break;
-
 		case JN: 
-		    bytes += 2;
-		    break;
-
 		case JZ: 
 		    bytes += 2;
 		    break;
