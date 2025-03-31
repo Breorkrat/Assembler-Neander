@@ -1,13 +1,12 @@
+OBJECTS=libraries/neander.o
+
 all: neander
 
-neander: neander.o
-	gcc main.c libraries/neander.o -o main -g
+neander: $(OBJECTS)
+	gcc main.c ${OBJECTS} -o main
 
-neander.o:
-	gcc libraries/neander.c -c -o libraries/neander.o
+%.o:%.c
+	gcc -c -o $@ $^
 
 clean:
-	rm libraries/neander.o
-	rm out.mem
-	rm main
-	rm main.exe
+	@rm -f out.mem $(OBJECTS) main main.exe
