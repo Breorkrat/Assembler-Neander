@@ -22,4 +22,4 @@ unsigned char address(char *str, int start);
 
 // Recebe um array de números de linhas que tenham desvios, a linha atual da procura e a quantidade de desvios no array de linhas, e retorna o índice no qual esse array possui um desvio que aponta para a linha atual;
 // Caso não seja encontrado um desvio para a linha atual, retorna -1
-int checarDesvio(char*, char, int);
+int checarDesvio(unsigned char*, char, int);

@@ -12,7 +12,7 @@ unsigned char address(char *str, int start){
     return (char)value;
 }
 
-int checarDesvio(char linhas[MAX_MEM], char linha, int max){
+int checarDesvio(unsigned char linhas[MAX_MEM], char linha, int max){
     for (int i = 0; i < max; i++){
 	if (linhas[i] == linha){
 	    return i;

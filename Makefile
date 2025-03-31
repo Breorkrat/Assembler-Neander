@@ -1,9 +1,10 @@
 OBJECTS=libraries/neander.o
+CFLAGS=-Wall
 
 all: neander
 
 neander: $(OBJECTS)
-	gcc main.c ${OBJECTS} -o main
+	gcc main.c ${CFLAGS} ${OBJECTS} -o main
 
 %.o:%.c
 	gcc -c -o $@ $^
