@@ -10,3 +10,4 @@ clean:
 	rm libraries/neander.o
 	rm out.mem
 	rm main
+	rm main.exe
