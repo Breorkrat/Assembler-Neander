@@ -1,13 +1,17 @@
-LDA 128
-JZ 8
-ADD 130
+LDA 130
 STA 128
 LDA 131
-STA 129
-JMP 5
+NOT
+ADD 129
+ADD 128
+JZ 14
+LDA 128
+ADD 129
+STA 128
+JMP 3
 HLT
 
-*128 9
-*129 0
-*130 128
-*131 1
+*128 0		# Contador
+*129 1		# Constante 1
+*130 0		# Constante 0
+*131 10		# Constante 10

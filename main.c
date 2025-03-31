@@ -1,27 +1,5 @@
 #include <stdio.h>
-#include <stdlib.h>
-
-#define MAX_MEM 512
-
-int hash(char *str)
-{
-  int hash = (str[0] * 3 + str[1] + str[2]) % 100;
-  return hash;
-}
-
-unsigned char address(char *str, int start){
-    int value = atoi(str+start);
-    return (char)value;
-}
-
-int checarDesvio(char linhas[MAX_MEM], char linha, int max){
-    for (int i = 0; i < max; i++){
-	if (linhas[i] == linha){
-	    return i;
-	}
-    }
-    return -1;
-}
+#include "libraries/neander.h"
 
 int main()
 {
@@ -50,45 +28,45 @@ int main()
       char key[] = {raw[0], raw[1], raw[2]};
       switch (hash(key))
       {
-      case 93: // NOP
+      case NOP:
         mem[bytes] = 0x00;
         break;
 
-      case 98: // STA
+      case STA: 
         mem[bytes] = 0x10;
         bytes += 2;
         mem[bytes] = address(raw, 4);
         break;
 
-      case 61: // LDA
+      case LDA: 
         mem[bytes] = 0x20;
         bytes += 2;
         mem[bytes] = address(raw, 4);
         break;
 
-      case 31: // ADD
+      case ADD: 
         mem[bytes] = 0x30;
         bytes += 2;
         mem[bytes] = address(raw, 4);
         break;
 
-      case 51: // OR
+      case OR: 
         mem[bytes] = 0x40;
         bytes += 2;
         mem[bytes] = address(raw, 3);
         break;
 
-      case 41: // AND
+      case AND: 
         mem[bytes] = 0x50;
         bytes += 2;
         mem[bytes] = address(raw, 4);
         break;
 
-      case 97: // NOT
+      case NOT: 
         mem[bytes] = 0x60;
         break;
 
-      case 79: // JMP
+      case JMP: 
         mem[bytes] = 0x80;
 	desvio[0][quantDesvio] = address(raw, 4); // Linha que o desvio procura
 	bytes += 2;
@@ -96,19 +74,19 @@ int main()
 	quantDesvio++;
         break;
 
-      case 32: // JN
+      case JN: 
         mem[bytes] = 0x90;
         bytes += 2;
         mem[bytes] = address(raw, 3);
         break;
 
-      case 44: // JZ
+      case JZ: 
         mem[bytes] = 0xA0;
         bytes += 2;
         mem[bytes] = address(raw, 3);
         break;
 
-      case 76: // HLT
+      case HLT: 
         mem[bytes] = 0xF0;
         break;
       }
